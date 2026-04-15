@@ -1,0 +1,42 @@
+body {
+    font-family: sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding: 40px 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 24px;
+    border-radius: 12px;
+}
+
+.memo-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+#meme-input {
+    flex: 1;
+}
+
+#memo-input {
+    flex: 1;
+    padding: 10px;
+}
+
+#add-button {
+    padding: 10px 16px;
+    cursor: pointer;
+}
+
+#memo-list {
+    padding-left: 20px;
+}
+
+#memo-list li {
+    margin-bottom: 8px;
+}
