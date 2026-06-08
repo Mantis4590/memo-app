@@ -1,24 +1,57 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>メモ帳アプリ</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <main class="container">
         <h1>メモ帳アプリ</h1>
 
-        <div class="memo-form">
-            <input type="text" id="memo-input" placeholder="メモを入力">
-            <button id="add-button">追加</button>
+        <section id="home-screen">
+            <button id="open-modal-button">メモ追加</button>
+            <div class="filter-tabs">
+                <button id="show-all-button" class="active-tab">すべて</button>
+                <button id="show-favorites-button">お気に入り</button>
+            </div>
+            <ul id="thread-list"></ul>
+        </section>
+
+        <div id="thread-modal" class="modal hidden">
+            <div class="modal-content">
+                <p>スレッドのタイトル</p>
+                <input type="text" id="thread-title-input" placeholder="タイトルを入力">
+                <div class="modal-buttons">
+                    <button id="create-thread-button">追加</button>
+                    <button id="close-modal-button">戻る</button>
+                </div>
+            </div>
         </div>
 
-        <ul id="memo-list"></ul>
-        
+        <section id="thread-screen" class="hidden">
+            <div class="thread-header">
+                <button id="back-button">← 戻る</button>
+                <input type="text"
+                id="thread-title"
+                class="thread-title-input"
+                placeholder="タイトルを入力">
+            </div>
+
+            <textarea id="memo-content" placeholder="ここにメモを書いてください"></textarea>
+
+            <div class="thread-actions">
+                <button id="save-button">保存</button>
+                <button id="favorite-button">☆ お気に入り</button>
+                <button id="delete-button" class="delete-button">削除</button>
+            </div>
+        </section>
     </main>
 
     <script src="app.js"></script>
 </body>
+
 </html>

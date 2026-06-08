@@ -1,18 +1,246 @@
-const memoInput = document.querySelector("#memo-input");
-const addButton = document.querySelector("#add-button");
-const memoList = document.querySelector("#memo-list");
+const homeScreen = document.getElementById("home-screen");
+const threadScreen = document.getElementById("thread-screen");
 
-addButton.addEventListener("click", function () {
-    const memoText = memoInput.value;
+const openModalButton = document.getElementById("open-modal-button");
+const closeModalButton = document.getElementById("close-modal-button");
+const createThreadButton = document.getElementById("create-thread-button");
 
-    if (memoText === "") {
+const threadModal = document.getElementById("thread-modal");
+const threadTitleInput = document.getElementById("thread-title-input");
+
+const threadList = document.getElementById("thread-list");
+const threadTitle = document.getElementById("thread-title");
+const memoContent = document.getElementById("memo-content");
+
+const backButton = document.getElementById("back-button");
+const saveButton = document.getElementById("save-button");
+const deleteButton = document.getElementById("delete-button");
+
+const showAllButton = document.getElementById("show-all-button");
+const showFavoritesButton = document.getElementById("show-favorites-button");
+const favoriteButton = document.getElementById("favorite-button");
+
+console.log({
+  homeScreen,
+  threadScreen,
+  openModalButton,
+  closeModalButton,
+  createThreadButton,
+  threadModal,
+  threadTitleInput,
+  threadList,
+  threadTitle,
+  memoContent,
+  backButton,
+  saveButton,
+  deleteButton
+});
+
+let threads = JSON.parse(localStorage.getItem("threads")) || [];
+let currentThreadId = null;
+let currentFilter = "all";
+let originalTitle = "";
+let originalContent = "";
+
+function renderThreadList() {
+  threadList.innerHTML = "";
+
+  const displayThreads = currentFilter === "favorite"
+    ? threads.filter((thread) => thread.isFavorite)
+    : threads;
+
+  if (displayThreads.length === 0) {
+    const emptyMessage = document.createElement("li");
+    emptyMessage.textContent = currentFilter === "favorite"
+      ? "お気に入りのメモはありません"
+      : "まだメモはありません";
+    threadList.appendChild(emptyMessage);
+    return;
+  }
+
+  displayThreads.forEach((thread) => {
+    const li = document.createElement("li");
+    li.classList.add("thread-item");
+
+    const previewText = thread.content
+      ? thread.content.substring(0, 40)
+      : "メモ内容はまだありません";
+
+    const favoriteMark = thread.isFavorite ? "★ " : "";
+
+    li.innerHTML = `
+      <div class="thread-item-title">${favoriteMark}${escapeHtml(thread.title)}</div>
+      <div class="thread-item-preview">${escapeHtml(previewText)}</div>
+    `;
+
+    li.addEventListener("click", () => {
+      openThread(thread.id);
+    });
+
+    threadList.appendChild(li);
+  });
+}
+
+function openModal() {
+  threadModal.classList.remove("hidden");
+  threadModal.classList.add("show");
+  threadTitleInput.value = "";
+}
+
+function closeModal() {
+  threadModal.classList.remove("show");
+  threadModal.classList.add("hidden");
+}
+
+function createThread() {
+  const title = threadTitleInput.value.trim();
+
+  if (!title) {
+    alert("タイトルを入力してください");
+    return;
+  }
+
+  const newThread = {
+    id: Date.now(),
+    title: title,
+    content: "",
+    isFavorite: false
+  };
+
+  threads.unshift(newThread);
+  saveThreads();
+  renderThreadList();
+  closeModal();
+}
+
+function openThread(threadId) {
+  const thread = threads.find((item) => item.id === threadId);
+
+  if (!thread) return;
+
+  currentThreadId = threadId;
+  threadTitle.value = thread.title;
+  memoContent.value = thread.content;
+
+  originalTitle = thread.title;
+  originalContent = thread.content;
+
+  updateFavoriteButton(thread);
+
+  homeScreen.classList.add("hidden");
+  threadScreen.classList.remove("hidden");
+}
+
+function goBackHome() {
+  const isChanged =
+    threadTitle.value.trim() !== originalTitle ||
+    memoContent.value !== originalContent;
+
+  if (isChanged) {
+    const isConfirmed = confirm("保存していない変更があります。保存せずに戻りますか？");
+
+    if (!isConfirmed) return;
+  }
+
+  currentThreadId = null;
+  threadScreen.classList.add("hidden");
+  homeScreen.classList.remove("hidden");
+  renderThreadList();
+}
+
+function saveCurrentThread() {
+  const thread = threads.find((item) => item.id === currentThreadId);
+
+    if (!thread) return;
+    
+    const editedTitle = threadTitle.value.trim();
+
+    if (!editedTitle) {
+        alert("タイトルを入力してください");
         return;
     }
 
-    const newMemoItem = document.createElement("li");
-    newMemoItem.textContent = memoText;
+    thread.title = editedTitle;
+    thread.content = memoContent.value;
+    
+    originalTitle = editedTitle;
+    originalContent = memoContent.value;
+    
+    saveThreads();
+    renderThreadList();
+    alert("保存しました");
+}
 
-    memoList.appendChild(newMemoItem);
+function deleteCurrentThread() {
+  if (currentThreadId === null) return;
 
-    memoInput.value = ""
-});
+  const isConfirmed = confirm("このメモを削除しますか？");
+
+  if (!isConfirmed) return;
+
+  threads = threads.filter((item) => item.id !== currentThreadId);
+  saveThreads();
+  goBackHome();
+}
+
+function saveThreads() {
+  localStorage.setItem("threads", JSON.stringify(threads));
+}
+
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function updateFavoriteButton(thread) {
+  if (thread.isFavorite) {
+    favoriteButton.textContent = "★ お気に入り解除";
+    favoriteButton.classList.add("favorite-active");
+  } else {
+    favoriteButton.textContent = "☆ お気に入り";
+    favoriteButton.classList.remove("favorite-active");
+  }
+}
+
+function toggleFavorite() {
+  const thread = threads.find((item) => item.id === currentThreadId);
+
+  if (!thread) return;
+
+  thread.isFavorite = !thread.isFavorite;
+
+  saveThreads();
+  updateFavoriteButton(thread);
+  renderThreadList();
+}
+
+function showAllThreads() {
+  currentFilter = "all";
+  showAllButton.classList.add("active-tab");
+  showFavoritesButton.classList.remove("active-tab");
+  renderThreadList();
+}
+
+function showFavoriteThreads() {
+  currentFilter = "favorite";
+  showFavoritesButton.classList.add("active-tab");
+  showAllButton.classList.remove("active-tab");
+  renderThreadList();
+}
+
+openModalButton.addEventListener("click", openModal);
+closeModalButton.addEventListener("click", closeModal);
+createThreadButton.addEventListener("click", createThread);
+
+backButton.addEventListener("click", goBackHome);
+saveButton.addEventListener("click", saveCurrentThread);
+deleteButton.addEventListener("click", deleteCurrentThread);
+favoriteButton.addEventListener("click", toggleFavorite);
+showAllButton.addEventListener("click", showAllThreads);
+showFavoritesButton.addEventListener("click", showFavoriteThreads);
+
+renderThreadList();
