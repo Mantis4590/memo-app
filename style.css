@@ -172,3 +172,11 @@ button:hover {
 .favorite-active {
     background: #f39c12;
 }
+
+.action-button {
+    background: #27ae60;
+}
+
+.action-button:hover {
+    background: #2ecc71;
+}

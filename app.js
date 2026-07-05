@@ -20,6 +20,12 @@ const showAllButton = document.getElementById("show-all-button");
 const showFavoritesButton = document.getElementById("show-favorites-button");
 const favoriteButton = document.getElementById("favorite-button");
 
+const showQrButton = document.getElementById("show-qr-button");
+const downloadImageButton = document.getElementById("download-image-button");
+const qrModal = document.getElementById("qr-modal");
+const qrCodeContainer = document.getElementById("qr-code-container");
+const closeQrModalButton = document.getElementById("close-qr-modal-button");
+
 console.log({
   homeScreen,
   threadScreen,
@@ -232,6 +238,95 @@ function showFavoriteThreads() {
   renderThreadList();
 }
 
+function showQrModal() {
+  const title = threadTitle.value.trim();
+  const content = memoContent.value;
+  
+  if (!title && !content) {
+    alert("共有する内容がありません");
+    return;
+  }
+  
+  const textToShare = `${title}\n\n${content}`;
+  const lineShareUrl = `https://line.me/R/msg/text/?${encodeURIComponent(textToShare)}`;
+  
+  qrCodeContainer.innerHTML = "";
+  new QRCode(qrCodeContainer, {
+    text: lineShareUrl,
+    width: 320,  // サイズを大きくして読み取りやすく
+    height: 320,
+    colorDark : "#000000",
+    colorLight : "#ffffff",
+    correctLevel : QRCode.CorrectLevel.L // エラー訂正レベルを下げて密度を下げる
+  });
+  
+  qrModal.classList.remove("hidden");
+  qrModal.classList.add("show");
+}
+
+function closeQrModal() {
+  qrModal.classList.remove("show");
+  qrModal.classList.add("hidden");
+  qrCodeContainer.innerHTML = "";
+}
+
+function downloadImage() {
+  // 一時的にアクションボタンを隠す
+  const actions = document.querySelectorAll(".thread-actions");
+  actions.forEach(el => el.style.display = "none");
+  
+  // html2canvasにおけるtextareaの折り返し・スクロール見切れバグを回避するため、
+  // 一時的にdiv要素に置き換えてから画像化する
+  const tempDiv = document.createElement("div");
+  const computedStyle = window.getComputedStyle(memoContent);
+  
+  // textareaの見た目をdivにコピー
+  tempDiv.style.width = computedStyle.width;
+  tempDiv.style.minHeight = computedStyle.height;
+  tempDiv.style.padding = computedStyle.padding;
+  tempDiv.style.fontSize = computedStyle.fontSize;
+  tempDiv.style.lineHeight = computedStyle.lineHeight;
+  tempDiv.style.border = computedStyle.border;
+  tempDiv.style.borderRadius = computedStyle.borderRadius;
+  tempDiv.style.boxSizing = computedStyle.boxSizing;
+  tempDiv.style.fontFamily = computedStyle.fontFamily;
+  tempDiv.style.backgroundColor = computedStyle.backgroundColor;
+  tempDiv.style.color = computedStyle.color;
+  tempDiv.style.whiteSpace = "pre-wrap"; // 改行と折り返しを維持
+  tempDiv.style.wordBreak = "break-word";
+  tempDiv.style.margin = computedStyle.margin;
+  
+  // テキストをセット
+  tempDiv.textContent = memoContent.value;
+  
+  // DOMを一時的に入れ替え
+  memoContent.style.display = "none";
+  memoContent.parentNode.insertBefore(tempDiv, memoContent);
+  
+  html2canvas(threadScreen, {
+    backgroundColor: "#ffffff",
+    scale: 2
+  }).then(canvas => {
+    // スタイル・要素を元に戻す
+    tempDiv.remove();
+    memoContent.style.display = "";
+    actions.forEach(el => el.style.display = "");
+    
+    const link = document.createElement("a");
+    const safeTitle = (threadTitle.value.trim() || "memo").substring(0, 10);
+    link.download = `${safeTitle}_${Date.now()}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }).catch(err => {
+    console.error(err);
+    // エラー時も元に戻す
+    tempDiv.remove();
+    memoContent.style.display = "";
+    actions.forEach(el => el.style.display = "");
+    alert("画像の生成に失敗しました");
+  });
+}
+
 openModalButton.addEventListener("click", openModal);
 closeModalButton.addEventListener("click", closeModal);
 createThreadButton.addEventListener("click", createThread);
@@ -242,5 +337,9 @@ deleteButton.addEventListener("click", deleteCurrentThread);
 favoriteButton.addEventListener("click", toggleFavorite);
 showAllButton.addEventListener("click", showAllThreads);
 showFavoritesButton.addEventListener("click", showFavoriteThreads);
+
+showQrButton.addEventListener("click", showQrModal);
+closeQrModalButton.addEventListener("click", closeQrModal);
+downloadImageButton.addEventListener("click", downloadImage);
 
 renderThreadList();

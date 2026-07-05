@@ -32,6 +32,16 @@
             </div>
         </div>
 
+        <div id="qr-modal" class="modal hidden">
+            <div class="modal-content">
+                <p>携帯のカメラで読み込んでください<br><small>※LINEが起動し、テキストを共有できます</small></p>
+                <div id="qr-code-container" style="display: flex; justify-content: center; margin: 20px 0; background: white; padding: 10px; border-radius: 8px;"></div>
+                <div class="modal-buttons">
+                    <button id="close-qr-modal-button">閉じる</button>
+                </div>
+            </div>
+        </div>
+
         <section id="thread-screen" class="hidden">
             <div class="thread-header">
                 <button id="back-button">← 戻る</button>
@@ -48,9 +58,15 @@
                 <button id="favorite-button">☆ お気に入り</button>
                 <button id="delete-button" class="delete-button">削除</button>
             </div>
+            <div class="thread-actions" style="margin-top: 10px;">
+                <button id="show-qr-button" class="action-button">📱 LINEへ送る(QR)</button>
+                <button id="download-image-button" class="action-button">🖼️ 画像として保存</button>
+            </div>
         </section>
     </main>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="app.js"></script>
 </body>
 
